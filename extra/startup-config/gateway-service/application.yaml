@@ -6,36 +6,45 @@ spring:
   codec:
     log-request-details: true
   cloud:
+    cloud:
+      consul:
+        host: localhost
+        port: 8500
+        discovery:
+          enabled: true
+          service-name: ${spring.application.name}
+          instance-id: ${spring.application.name}-${random.value}
+
     gateway:
       server:
         webflux:
           routes:
             - id: account-service-route
-              uri: http://account-service:8080
+              uri: lb://account-service:8080
               predicates:
                 - Path=/accounts/**
               filters:
                 - RewritePath=/accounts/?(?<segment>.*), /$\{segment}
             - id: cash-service-route
-              uri: http://cash-service:8080
+              uri: lb://cash-service:8080
               predicates:
                 - Path=/cash/**
               filters:
                 - RewritePath=/cash/?(?<segment>.*), /$\{segment}
             - id: exchange-service-route
-              uri: http://exchange-service:8080
+              uri: lb://exchange-service:8080
               predicates:
                 - Path=/exchange/**
               filters:
                 - RewritePath=/exchange/?(?<segment>.*), /$\{segment}
             - id: notification-service-route
-              uri: http://notification-service:8080
+              uri: lb://notification-service:8080
               predicates:
                 - Path=/notifications/**
               filters:
                 - RewritePath=/notifications/?(?<segment>.*), /$\{segment}
             - id: transfer-service-route
-              uri: http://transfer-service:8080
+              uri: lb://transfer-service:8080
               predicates:
                 - Path=/transfer/**
               filters:

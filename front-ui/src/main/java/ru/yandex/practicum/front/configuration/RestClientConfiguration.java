@@ -10,7 +10,6 @@ import ru.yandex.practicum.account.ApiClient;
 import ru.yandex.practicum.account.api.AccountApi;
 import ru.yandex.practicum.account.api.UserApi;
 import ru.yandex.practicum.cash.api.CashApi;
-import ru.yandex.practicum.exchange.api.CurrencyApi;
 import ru.yandex.practicum.transfer.api.TransferApi;
 
 @Configuration
@@ -44,19 +43,6 @@ public class RestClientConfiguration {
 
     @Bean
     @RequestScope
-    public ru.yandex.practicum.exchange.ApiClient exchangeApiClient(OAuth2AuthorizedClientManager manager,
-                                                                    @Value("${rest.client.exchange.url}") String exchangeUrl) {
-        OAuth2AuthorizeRequest request = OAuth2AuthorizeRequest.withClientRegistrationId("front-ui")
-                .principal("system")
-                .build();
-        ru.yandex.practicum.exchange.ApiClient client = new ru.yandex.practicum.exchange.ApiClient();
-        client.setBasePath(exchangeUrl);
-        client.setBearerToken(manager.authorize(request).getAccessToken().getTokenValue());
-        return client;
-    }
-
-    @Bean
-    @RequestScope
     public ru.yandex.practicum.transfer.ApiClient transferApiClient(OAuth2AuthorizedClientManager manager,
                                                                     @Value("${rest.client.transfer.url}") String transferUrl) {
         OAuth2AuthorizeRequest request = OAuth2AuthorizeRequest.withClientRegistrationId("front-ui")
@@ -83,10 +69,6 @@ public class RestClientConfiguration {
         return new CashApi(cashApiClient);
     }
 
-    @Bean
-    public CurrencyApi currencyApi(ru.yandex.practicum.exchange.ApiClient exchangeApiClient) {
-        return new CurrencyApi(exchangeApiClient);
-    }
 
     @Bean
     public TransferApi transferApi(ru.yandex.practicum.transfer.ApiClient transferApiClient) {
