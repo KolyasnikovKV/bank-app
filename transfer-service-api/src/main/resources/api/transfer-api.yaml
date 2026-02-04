@@ -1,0 +1,88 @@
+openapi: 3.0.3
+info:
+  title: Сервис работы с переводами между счетами
+  version: 1.0.0-SNAPSHOT
+servers:
+  - url: http://localhost:8888/transfer
+paths:
+  /transfer/from/{fromUsername}/to/{toUsername}:
+    post:
+      parameters:
+        - name: fromUsername
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: toUsername
+          in: path
+          required: true
+          schema:
+            type: string
+      operationId: TransferCash
+      summary: Выполнить перевод средств между счетами
+      security:
+        - bearerAuth: [ ]
+      tags:
+        - transfer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TransferCashRq'
+      responses:
+        "200":
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseInfo'
+        "400":
+          description: "BAD REQUEST"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseInfo'
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    ResponseInfo:
+      title: ResponseInfo
+      description: Базовая информация о результатах вызова
+      type: object
+      required:
+        - status
+      properties:
+        status:
+          type: boolean
+          description: успешный или нет вызов
+        error:
+          type: object
+          description: информация об ошибке
+          required:
+            - errorMessage
+          properties:
+            errorMessage:
+              type: string
+              description: текст ошибки
+    TransferCashRq:
+      title: TransferCashRq
+      description: Запрос на перевод средств между счетами
+      type: object
+      required:
+        - userMail
+        - subject
+        - text
+      properties:
+        fromAccount:
+          type: string
+          description: счет источник
+        toAccount:
+          type: string
+          description: счет получатель
+        value:
+          type: number
+          description: сумма средств

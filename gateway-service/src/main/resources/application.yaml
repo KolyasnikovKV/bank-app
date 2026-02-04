@@ -1,0 +1,62 @@
+server:
+  port: 8888
+spring:
+  application:
+    name: gateway-service
+  cloud:
+    consul:
+      host: localhost
+      port: 8500
+      discovery:
+        enabled: true
+        service-name: ${spring.application.name}
+        instance-id: ${spring.application.name}-${random.value}
+    gateway:
+      server:
+        webflux:
+          routes:
+            - id: account-service-route
+#              uri: http://127.0.0.1:8090
+              uri: lb://account-service:8080
+              predicates:
+                - Path=/accounts/**
+              filters:
+                - RewritePath=/accounts/?(?<segment>.*), /$\{segment}
+            - id: cash-service-route
+#              uri: http://127.0.0.1:8092
+              uri: lb://cash-service:8080
+              predicates:
+                - Path=/cash/**
+              filters:
+                - RewritePath=/cash/?(?<segment>.*), /$\{segment}
+            - id: exchange-service-route
+#              uri: http://127.0.0.1:8093
+              uri: lb://exchange-service:8080
+              predicates:
+                - Path=/exchange/**
+              filters:
+                - RewritePath=/exchange/?(?<segment>.*), /$\{segment}
+            - id: notification-service-route
+#              uri: http://127.0.0.1:8094
+              uri: lb://notification-service:8080
+              predicates:
+                - Path=/notifications/**
+              filters:
+                - RewritePath=/notifications/?(?<segment>.*), /$\{segment}
+            - id: transfer-service-route
+#              uri: http://127.0.0.1:8095
+              uri: lb://transfer-service:8080
+              predicates:
+                - Path=/transfer/**
+              filters:
+                - RewritePath=/transfer/?(?<segment>.*), /$\{segment}
+logging:
+  level:
+    reactor:
+      netty: INFO
+    org:
+      springframework:
+        cloud:
+          gateway: TRACE
+    org.springframework.cloud.gateway: DEBUG # Или TRACE, INFO
+    org.springframework.web.server.handler.ResponseTimeHandler: INFO
