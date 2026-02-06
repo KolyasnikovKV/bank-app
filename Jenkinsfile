@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     parameters {
-        choice(name: "service", choices: ["bank-app", "front-ui", "account-service", "blocker-service", "cash-service", "exchange-service", "exchange-generator-service", "notification-service", "transfer-service", "identity-provider", "postgre-db"], description: "Choose service for build and deploy")
+        choice(name: "service", choices: ["bank-app", "front-ui", "account-service", "cash-service", "notification-service", "transfer-service", "identity-provider", "postgre-db"], description: "Choose service for build and deploy")
         choice(name: "namespace", choices: ["dev", "test", "prod"], description: "Choose namespace")
         booleanParam(name: "skip_test", defaultValue: false, description: "Skip test on service build")
     }
