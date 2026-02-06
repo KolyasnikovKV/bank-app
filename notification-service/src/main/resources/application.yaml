@@ -25,3 +25,8 @@ notification:
 keycloak-custom:
   host: localhost
   port: 9090
+management:
+  endpoint:
+    health:
+      probes:
+        enabled: true
