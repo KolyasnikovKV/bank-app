@@ -1,14 +1,6 @@
 spring:
-  config:
-    import: "optional:consul:"
   application:
     name: account-service
-  cloud:
-    consul:
-      host: localhost
-      port: 8500
-      config:
-        enabled: true
   datasource:
     url: jdbc:postgresql://localhost:5432/yandex_practicum
     username: bank_app_user
@@ -33,3 +25,8 @@ logging:
     org:
       springframework:
         web: DEBUG
+management:
+  endpoint:
+    health:
+      probes:
+        enabled: true
