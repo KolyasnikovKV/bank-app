@@ -2,7 +2,10 @@ package ru.yandex.practicum.transfer.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.apache.commons.lang3.BooleanUtils;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 import ru.yandex.practicum.account.api.AccountApi;
@@ -24,8 +27,11 @@ import java.math.BigDecimal;
 public class TransferService {
 
     private final AccountApi accountApi;
-    private final NotificationApi notificationApi;
     private final UserApi userApi;
+    private final KafkaTemplate<String, SendNotificationRq> kafkaTemplate;
+
+    @Value("${kafka.producer.topic-name}")
+    private String topicName;
 
     public void transfer(String fromUser, String toUser, TransferCashRq transferCashRq) {
         var result = transfer(fromUser, toUser, transferCashRq, transferCashRq.getValue());
@@ -65,14 +71,11 @@ public class TransferService {
                 toUser,
                 requestInfo.getToAccount()
         );
-        notificationApi.sendNotification(
-                        new SendNotificationRq()
-                                .userMail(userInfo.getEmail())
-                                .subject(subject)
-                                .text(text)
-                )
-                .doOnError(t -> log.error("При попытке отправить уведомление получена ошибка: {}", t.getMessage()))
-                .onErrorComplete()
-                .block();
+        log.info("Отправляем событие об уведомлении в {}", topicName);
+        var notificationRq = new SendNotificationRq()
+                .userMail(userInfo.getEmail())
+                .subject(subject)
+                .text(text);
+        kafkaTemplate.send(topicName, notificationRq);
     }
 }
