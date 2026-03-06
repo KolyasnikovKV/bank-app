@@ -1,0 +1,32 @@
+server:
+  port: 8094
+spring:
+  application:
+    name: notification-service
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://${keycloak-custom.host}:${keycloak-custom.port}/realms/master
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username:
+    password:
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+notification:
+  mail:
+    tech-mail-box:
+keycloak-custom:
+  host: localhost
+  port: 9090
+management:
+  endpoint:
+    health:
+      probes:
+        enabled: true

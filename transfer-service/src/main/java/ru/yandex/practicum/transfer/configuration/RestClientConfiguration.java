@@ -6,6 +6,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.oauth2.client.OAuth2AuthorizeRequest;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClientManager;
 import org.springframework.web.context.annotation.RequestScope;
+import org.springframework.web.reactive.function.client.WebClient;
 import ru.yandex.practicum.account.api.AccountApi;
 import ru.yandex.practicum.account.api.UserApi;
 import ru.yandex.practicum.notification.api.NotificationApi;
@@ -16,11 +17,12 @@ public class RestClientConfiguration {
     @Bean
     @RequestScope
     public ru.yandex.practicum.account.ApiClient accountsApiClient(OAuth2AuthorizedClientManager manager,
+                                                                   WebClient accountsWebClient,
                                                                    @Value("${rest.client.accounts.url}") String accountsUrl) {
         OAuth2AuthorizeRequest request = OAuth2AuthorizeRequest.withClientRegistrationId("transfer-service")
                 .principal("system")
                 .build();
-        ru.yandex.practicum.account.ApiClient client = new ru.yandex.practicum.account.ApiClient();
+        ru.yandex.practicum.account.ApiClient client = new ru.yandex.practicum.account.ApiClient(accountsWebClient);
         client.setBasePath(accountsUrl);
         client.setBearerToken(manager.authorize(request).getAccessToken().getTokenValue());
         return client;

@@ -1,0 +1,32 @@
+replicaCount: 1
+image:
+  repository: elasticsearch
+  pullPolicy: IfNotPresent
+  tag: "9.0.2"
+command: []
+containerArgs: []
+containerEnv:
+  - name: "discovery.type"
+    value: "single-node"
+  - name: "node.name"
+    value: "node-1"
+  - name: "xpack.security.enabled"
+    value: "false"
+  - name: "xpack.security.http.ssl.enabled"
+    value: "false"
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+podAnnotations: {}
+podLabels: {}
+podSecurityContext: {}
+securityContext: {}
+service:
+  type: ClusterIP
+  port: 9200
+resources: {}
+volumes: {}
+volumeMounts: {}
+nodeSelector: {}
+tolerations: []
+affinity: {}
