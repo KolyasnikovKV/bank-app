@@ -17,12 +17,16 @@ import java.util.Optional;
 import java.util.function.Supplier;
 
 @Service
-@RequiredArgsConstructor
-public class UserService {
+public class UserService extends BaseService {
 
     private final UserRepository userRepository;
     private final UserInfoMapper userInfoMapper;
-    private final Tracer tracer;
+
+    public UserService(Tracer tracer, UserRepository userRepository, UserInfoMapper userInfoMapper) {
+        super(tracer);
+        this.userRepository = userRepository;
+        this.userInfoMapper = userInfoMapper;
+    }
 
     public UserInfo findByUsername(String username) {
         return callDbAndTraceIt(() -> userRepository.findByUsername(username), "user_repository.find_by_username")
@@ -59,12 +63,4 @@ public class UserService {
                 .toList();
     }
 
-    private <T> T callDbAndTraceIt(Supplier<T> runnable, String traceName) {
-        var span = tracer.nextSpan().remoteServiceName("postgre-db").name(traceName).start();
-        try {
-            return runnable.get();
-        } finally {
-            span.end();
-        }
-    }
 }

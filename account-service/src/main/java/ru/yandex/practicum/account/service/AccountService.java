@@ -19,12 +19,16 @@ import java.util.Objects;
 import java.util.function.Supplier;
 
 @Service
-@RequiredArgsConstructor
-public class AccountService {
+public class AccountService  extends BaseService {
 
     private final UserRepository userRepository;
     private final AccountRepository accountRepository;
-    private final Tracer tracer;
+
+    public AccountService(Tracer tracer, UserRepository userRepository, AccountRepository accountRepository) {
+        super(tracer);
+        this.userRepository = userRepository;
+        this.accountRepository = accountRepository;
+    }
 
     @Transactional
     public void createNewAccount(String userName, CreateAccountRq request) {
@@ -43,7 +47,7 @@ public class AccountService {
         callDbAndTraceIt(() -> accountRepository.findAllUserAccounts(userName), "account_repository.find_all_user_accounts")
                         .forEach(account -> {
                             if (request.getCurrency().contains(account.getCurrency())) {
-                                callDbAndTraceIt(() -> accountRepository.delete(account), "account_repository.delete");
+                                callDbAndTraceItVoid(() -> accountRepository.delete(account), "account_repository.delete");
                             }
                         });
     }
@@ -96,23 +100,7 @@ public class AccountService {
                 );
     }
 
-    private <T> T callDbAndTraceIt(Supplier<T> runnable, String traceName) {
-        var span = tracer.nextSpan().remoteServiceName("postgre-db").name(traceName).start();
-        try {
-            return runnable.get();
-        } finally {
-            span.end();
-        }
-    }
 
-    private void callDbAndTraceIt(Runnable runnable, String traceName) {
-        var span = tracer.nextSpan().remoteServiceName("postgre-db").name(traceName).start();
-        try {
-            runnable.run();
-        } finally {
-            span.end();
-        }
-    }
 
     private UserAccountEntity mapNewAccount(UserEntity user, String currency) {
         var account = new UserAccountEntity();
