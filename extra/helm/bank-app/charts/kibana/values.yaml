@@ -1,0 +1,26 @@
+replicaCount: 1
+image:
+  repository: kibana
+  pullPolicy: IfNotPresent
+  tag: "9.0.2"
+command: []
+containerArgs: []
+containerEnv:
+  - name: "ELASTICSEARCH_HOSTS"
+    value: "http://elasticsearch-svc:9200"
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+podAnnotations: {}
+podLabels: {}
+podSecurityContext: {}
+securityContext: {}
+service:
+  type: ClusterIP
+  port: 5601
+resources: {}
+volumes: {}
+volumeMounts: {}
+nodeSelector: {}
+tolerations: []
+affinity: {}

@@ -1,5 +1,6 @@
 package ru.yandex.practicum.account.service;
 
+import io.micrometer.tracing.Tracer;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -13,36 +14,43 @@ import ru.yandex.practicum.account.repository.UserRepository;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Supplier;
 
 @Service
-@RequiredArgsConstructor
-public class UserService {
+public class UserService extends BaseService {
 
     private final UserRepository userRepository;
     private final UserInfoMapper userInfoMapper;
 
+    public UserService(Tracer tracer, UserRepository userRepository, UserInfoMapper userInfoMapper) {
+        super(tracer);
+        this.userRepository = userRepository;
+        this.userInfoMapper = userInfoMapper;
+    }
+
     public UserInfo findByUsername(String username) {
-        return userRepository.findByUsername(username)
+        return callDbAndTraceIt(() -> userRepository.findByUsername(username), "user_repository.find_by_username")
                 .map(userInfoMapper::mapToUserInfo)
                 .orElseThrow(() -> new UserNotFoundException(username));
     }
 
     @Transactional
     public UserInfo saveNewUser(UserRegisterInfo userInfo) {
-        var newUser = userRepository.save(userInfoMapper.mapToEntity(userInfo));
+        var entityToSave = userInfoMapper.mapToEntity(userInfo);
+        var newUser = callDbAndTraceIt(() -> userRepository.save(entityToSave), "user_repository.save");
         return userInfoMapper.mapToUserInfo(newUser);
     }
 
     @Transactional
     public UserInfo updateUser(String userName, UpdateUserInfoRq updateRequest) {
-        userRepository.findByUsername(userName)
+        callDbAndTraceIt(() -> userRepository.findByUsername(userName), "user_repository.find_by_username")
                 .ifPresentOrElse(
                         userEntity -> {
                             Optional.ofNullable(updateRequest.getFullName()).ifPresent(userEntity::setFullName);
                             Optional.ofNullable(updateRequest.getPassword()).ifPresent(userEntity::setPassword);
                             Optional.ofNullable(updateRequest.getBirthDay()).ifPresent(userEntity::setBirthDay);
                             Optional.ofNullable(updateRequest.getEmail()).ifPresent(userEntity::setEmail);
-                            userRepository.save(userEntity);
+                            callDbAndTraceIt(() -> userRepository.save(userEntity), "user_repository.save");
                         },
                         () -> {throw new UserNotFoundException(userName);}
                 );
@@ -50,8 +58,9 @@ public class UserService {
     }
 
     public List<ShortUserInfo> getAllRegisteredUsers() {
-        return userRepository.findAll().stream()
+        return callDbAndTraceIt(userRepository::findAll, "user_repository.find_all").stream()
                 .map(user -> new ShortUserInfo(user.getUsername(), user.getFullName()))
                 .toList();
     }
+
 }

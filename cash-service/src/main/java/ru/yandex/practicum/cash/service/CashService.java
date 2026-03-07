@@ -1,5 +1,6 @@
 package ru.yandex.practicum.cash.service;
 
+import io.micrometer.tracing.Tracer;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -30,6 +31,7 @@ public class CashService {
     private final UserApi userApi;
 
     private final KafkaTemplate<String, SendNotificationRq> kafkaTemplate;
+    private final Tracer tracer;
 
     @Value("${kafka.producer.topic-name}")
     private String topicName;
@@ -72,6 +74,11 @@ public class CashService {
                 .userMail(userInfo.getEmail())
                 .subject(subject.formatted(requestInfo.getCurrency()))
                 .text(text.formatted(userInfo.getFullName(), requestInfo.getCurrency(), requestInfo.getValue()));
-        kafkaTemplate.send(topicName, notificationRq);
+        var span = tracer.nextSpan().remoteServiceName("kafka").name("kafka.%s".formatted(topicName)).start();
+        try {
+            kafkaTemplate.send(topicName, notificationRq);
+        } finally {
+            span.end();
+        }
     }
 }
